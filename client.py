@@ -3,8 +3,10 @@ import time
 import threading
 from bots import checkIfBot
 
-proceed = True
 users = ["dictator", "alice", "beth", "bob", "chuck"]
+#TODO Remove
+activity = "work"
+activity2 = None
 
 def checkValidUser(inp):
     while inp == None or inp.lower() not in users:
@@ -12,6 +14,12 @@ def checkValidUser(inp):
         inp = input("User: ")
     return inp
 
+def prevBot(user):
+    i = users.index(user)
+    if i > 1:
+        return users[i-1]
+    else:
+        return users[users.__len__()-1]
 
 try:
     hostIP = sys.argv[1]
@@ -39,13 +47,16 @@ while True:
             to_split = user+" says:"
             if msg.startswith(to_split):
                 print("You said:" + msg[len(to_split):])
+        elif msg.startswith("dictator"):
+            msg = f"{user} said: {checkIfBot(user, activity, activity2)}"
+            c_socket.send(msg.encode())
         elif msg=="You've been kicked out":
             print(msg)
             print("Bye...")
             c_socket.close()
             quit()
-        else:
-            print(msg)
+        elif msg!="":
+                print(msg)
     except:
         c_socket.close()
         break
