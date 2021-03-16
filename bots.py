@@ -1,10 +1,7 @@
 import random
 
-option1 = ""
-option2 = ""
-
-bad_behaviour = ["fight", "kill", "murder", "bicker", "yell", "scream", "destroy", "complain", "steal"]
-good_behaviour = ["hug", "walk", "play", "sing", "talk", "sleep", "work", "laugh", "cry"]
+bad_behaviour = ["fight", "kill", "shout", "murder", "bicker", "yell", "scream", "destroy", "complain", "steal"]
+good_behaviour = ["hug", "walk", "play", "sing", "talk", "eat", "sleep", "work", "laugh", "cry", "dream"]
 all_behaviour = bad_behaviour + good_behaviour
 
 
@@ -44,10 +41,10 @@ def chuck(a, b = None):
         out += "{}? Sounds like what a loser would do.".format(a+"ing")
     return out
 
-botsDict = {'alice':alice, 'bob':bob, 'beth':beth, 'chuck':chuck}
+botsDict = {'Alice':alice, 'Beth':beth, 'Bob':bob,'Chuck':chuck}
 
 def checkIfBot(inp, activity, activity2 = None):
-    inp = str(inp).lower()
+    inp = str(inp).lower().capitalize()
     if inp in botsDict:
         return botsDict[inp](activity, activity2)
     else:

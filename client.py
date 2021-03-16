@@ -3,16 +3,16 @@ import time
 import threading
 from bots import checkIfBot
 
-users = ["dictator", "alice", "beth", "bob", "chuck"]
+users = ["Dictator", "Alice", "Beth", "Bob", "Chuck"]
 #TODO Remove
 activity = "work"
 activity2 = None
 
 def checkValidUser(inp):
-    while inp == None or inp.lower() not in users:
+    while inp == None or inp.lower().capitalize() not in users:
         print(f"Please choose a user: \"{users[0]}\" (to send messages), \"{users[1]}\" (bot), \"{users[2]}\" (bot), \"{users[3]}\" (bot) or \"{users[4]}\" (bot). Do not include quotation marks.")
         inp = input("User: ")
-    return inp
+    return inp.lower().capitalize()
 
 def prevBot(user):
     i = users.index(user)
@@ -44,10 +44,10 @@ while True:
         if msg == "USRNM":
             c_socket.send(user.encode())
         elif msg.startswith(user):
-            to_split = user+" says:"
+            to_split = user+" said:"
             if msg.startswith(to_split):
                 print("You said:" + msg[len(to_split):])
-        elif msg.startswith("dictator"):
+        elif msg.startswith(users[0]):
             msg = f"{user} said: {checkIfBot(user, activity, activity2)}"
             c_socket.send(msg.encode())
         elif msg=="You've been kicked out":

@@ -67,7 +67,7 @@ def kickOutAll():
 
 def poll():
     for client in clients:
-        client.send(f"dictator suggests: {activity}".encode())
+        client.send(f"Dictator suggests: {activity}".encode())
     for client in clients:
         msg = client.recv(1024)
         time.sleep(0.2)
@@ -104,7 +104,7 @@ def connect():
             thread = threading.Thread(target=poll)
             thread.start()
             thread.join()
-            broadcast(f"Well, guess what? I am the dictator and I say we are {activity}ing! Do like Alice or DIE!!!!")
+            broadcast(f"Dictator said: Well, guess what? I am the dictator and I say we are {activity}ing! Accept or DIE!!!!")
             kickOutAll()
         except KeyboardInterrupt:
             print("\nIt's rude not to say \"bye\". Everyone has been kicked out.")
