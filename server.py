@@ -4,8 +4,11 @@ import threading
 
 activity = "work"
 
+#Lists which will contain information about connected clients and users
 clients = []
 users = []
+
+#Target number of users which must be reached for dialogue to start
 target_nr = 3
 #TODO: Change to 5
 
@@ -14,7 +17,6 @@ s_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s_socket.bind(("0.0.0.0", 24242))
 s_socket.listen(target_nr)
-
 print("Server is listening...")
 
 #Broadcasts message to all clients
@@ -32,7 +34,7 @@ def addUser(client, address):
     #Client will check that username is one of the valid names and send to server
     user = client.recv(1024).decode()
 
-    #If bot hasn't already been initialised, add 
+    #If bot hasn't already been initialised, add it
     if user not in users:
         print(f"User: {user}\n")
         users.append(user)
@@ -44,7 +46,7 @@ def addUser(client, address):
         if clients.__len__() < target_nr:
             broadcast(f"\n{clients.__len__()} clients connected. Program will start when {target_nr} are connected")
         else:
-            broadcast(f"\n{clients.__len__()} clients connected. Program is starting...")
+            broadcast(f"\n{clients.__len__()} clients connected. Program is starting...\n")
         time.sleep(0.5)
     #Else, close connection
     else:
@@ -54,17 +56,24 @@ def addUser(client, address):
         print(f"Disconnecting from {str(address)}")
         client.close()
 
+#Retrieves username from client
 def fetchUser(client):
     i = clients.index(client)
     return users[i]
 
+#Kicks out all users
 def kickOutAll():
-    broadcast("You've been kicked out")
+    broadcast("\nYou've been kicked out")
+
+    #Clears lists
     users.clear()
     clients.clear()
+
+    #Closes socket and server instance
     s_socket.close()
     quit()
 
+#Sends activity suggestion(s) and receives answers from bots
 def poll():
     for client in clients:
         client.send(f"Dictator suggests: {activity}".encode())
@@ -73,9 +82,9 @@ def poll():
         time.sleep(0.2)
         broadcast(msg)
 
-
 #"Main" function: listens for connections and starts chat when it is time
 def connect():
+    #On the lookout for connections while the target number isn't reached
     while clients.__len__() < target_nr:
         try:
             #Establishing connection with client upon request
@@ -96,14 +105,17 @@ def connect():
             print ("\nThe world is a mysterious place and a mysterious error has occurred.")
             kickOutAll()
 
+    #Starts chat when the target number is reached
     if clients.__len__() == target_nr:
         print("Target number reached!")
 
         try:
-        #When program reaches its target number of users, starts message exchange    
+            #Starts message exchange on separate thread   
             thread = threading.Thread(target=poll)
             thread.start()
             thread.join()
+
+            #Once all bots have had a say, the dictator kicks in and kicks everybody out because of the audacity of challenging their almighty power
             broadcast(f"Dictator said: Well, guess what? I am the dictator and I say we are {activity}ing! Accept or DIE!!!!")
             kickOutAll()
         except KeyboardInterrupt:
@@ -118,4 +130,5 @@ def connect():
             print ("Bye...")
             kickOutAll()
 
+#Effectively runs the server
 connect()
