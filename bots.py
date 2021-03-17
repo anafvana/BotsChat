@@ -1,7 +1,7 @@
 import random
 
 bad_behaviour = ["fight", "kill", "shout", "murder", "bicker", "saw", "yell", "stalk", "scream", "destroy", "complain", "steal"]
-good_behaviour = ["hug", "craft", "walk", "play", "sing", "sew", "talk", "eat", "sleep", "work", "laugh", "cry", "dream", "text"]
+good_behaviour = ["kiss", "craft", "walk", "play", "sing", "sew", "talk", "eat", "sleep", "work", "laugh", "cry", "dream", "text"]
 all_behaviour = bad_behaviour + good_behaviour
 
 

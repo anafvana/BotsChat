@@ -1,16 +1,22 @@
+import random
 import socket
 import time
 import threading
+from bots import all_behaviour
 
-activity = "work"
+#Empty array so that sometimes activity2 is empty
+empty_behaviour = [None]*(int(all_behaviour.__len__()/3))
+
+activity = random.choice(all_behaviour)
+activity2 = random.choice(all_behaviour + empty_behaviour)
 
 #Lists which will contain information about connected clients and users
 clients = []
 users = []
 
 #Target number of users which must be reached for dialogue to start
-target_nr = 3
-#TODO: Change to 5
+    #Max 4
+target_nr = 4
 
 #Creates TCP server socket
 s_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -20,12 +26,13 @@ s_socket.listen(target_nr)
 print("Server is listening...")
 
 #Broadcasts message to all clients
-def broadcast(msg):
+def broadcast(msg, sender=None):
     if type(msg) == str:
         msg = msg.encode()
 
     for client in clients:
-        client.send(msg)
+        if client != sender:
+            client.send(msg)
     time.sleep(0.1)
 
 #Sends client a request for a username
@@ -40,9 +47,8 @@ def addUser(client, address):
         users.append(user)
         clients.append(client)
         client.send("\nYou are now connected to the server".encode())
-        time.sleep(0.1)
-        broadcast(f"\n{user} has joined the chat")
-        time.sleep(0.1)
+        broadcast(f"\n{user} has joined the chat", client)
+        time.sleep(0.3)
         if clients.__len__() < target_nr:
             broadcast(f"\n{clients.__len__()} clients connected. Program will start when {target_nr} are connected")
         else:
@@ -56,11 +62,6 @@ def addUser(client, address):
         print(f"Disconnecting from {str(address)}")
         client.close()
 
-#Retrieves username from client
-def fetchUser(client):
-    i = clients.index(client)
-    return users[i]
-
 #Kicks out all users
 def kickOutAll():
     broadcast("\nYou've been kicked out")
@@ -68,19 +69,25 @@ def kickOutAll():
     #Clears lists
     users.clear()
     clients.clear()
-
+    time.sleep(0.5)
     #Closes socket and server instance
     s_socket.close()
+    time.sleep(0.5)
     quit()
 
 #Sends activity suggestion(s) and receives answers from bots
 def poll():
+    if activity2 == None:
+        msg = f"Dictator suggested: {activity} "
+    else:
+        msg = f"Dictator suggested: {activity} or {activity2}"
+
     for client in clients:
-        client.send(f"Dictator suggests: {activity}".encode())
+        client.send(msg.encode())
     for client in clients:
         msg = client.recv(1024)
         time.sleep(0.2)
-        broadcast(msg)
+        broadcast(msg, client)
 
 #"Main" function: listens for connections and starts chat when it is time
 def connect():
@@ -96,11 +103,6 @@ def connect():
         except KeyboardInterrupt:
             print("\nIt's rude not to say \"bye\". Everyone has been kicked out.")
             kickOutAll()
-        except socket.timeout:
-            print("\nIt's just too little too late, a little too wrong, and I can't wait. \n-JoJo")
-            kickOutAll()
-        except BrokenPipeError:
-            continue
         except:
             print ("\nThe world is a mysterious place and a mysterious error has occurred.")
             kickOutAll()
@@ -117,12 +119,11 @@ def connect():
 
             #Once all bots have had a say, the dictator kicks in and kicks everybody out because of the audacity of challenging their almighty power
             broadcast(f"Dictator said: Well, guess what? I am the dictator and I say we are {activity}ing! Accept or DIE!!!!")
+            time.sleep(1)
+            print("\nThis conversation is over.")
             kickOutAll()
         except KeyboardInterrupt:
             print("\nIt's rude not to say \"bye\". Everyone has been kicked out.")
-            kickOutAll()
-        except socket.timeout:
-            print("\nIt's just too little too late, a little too wrong, and I can't wait. \n-JoJo")
             kickOutAll()
         except BrokenPipeError:
             print("Broken pipe.")

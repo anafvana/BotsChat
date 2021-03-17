@@ -3,15 +3,12 @@ import time
 import threading
 from bots import actBot
 
-users = ["Dictator", "Alice", "Beth", "Bob", "Chuck"]
-#TODO Remove
-activity = "work"
-activity2 = None
+users = ["Alice", "Beth", "Bob", "Chuck"]
 
 #Check if the input user is a valid value
 def checkValidUser(inp):
     while inp == None or inp.lower().capitalize() not in users:
-        print(f"Please choose a user: \"{users[0]}\" (to send messages), \"{users[1]}\" (bot), \"{users[2]}\" (bot), \"{users[3]}\" (bot) or \"{users[4]}\" (bot). Do not include quotation marks.")
+        print(f"Please choose a bot: \"{users[0]}\", \"{users[1]}\", \"{users[2]}\" or \"{users[3]}\". Do not include quotation marks.")
         inp = input("User: ")
     return inp.lower().capitalize()
 
@@ -22,7 +19,8 @@ try:
 except:
     proceed = False
     print("Please include the following arguments, in order: [host IP] [port 24242] [OPTIONAL: user]")
-    print(f"Write \"{users[0]}\" for sending messages. For the bots, choose \"{users[1]}\", \"{users[2]}\", \"{users[3]}\" or \"{users[4]}\"")
+    print(f"Choose \"{users[0]}\", \"{users[1]}\", \"{users[2]}\" or \"{users[3]}\"")
+    quit()
 
 #Checks if user was inserted and confirms validity
 try:
@@ -33,8 +31,15 @@ user = checkValidUser(tmp_user)
 
 #Creates socket
 c_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-c_socket.connect((hostIP, hostPort))
+try:
+    c_socket.connect((hostIP, hostPort))
+except ConnectionRefusedError:
+    print("ERROR! Have you remembered to start the server?")
+    quit()
+except:
+    print("An error occurred. Try again.")
 
+#"Main" listen function
 def listen():
     #Continuously listens for messages from the server
     while True:
@@ -45,19 +50,22 @@ def listen():
             if msg == "USRNM":
                 c_socket.send(user.encode())
 
-            #Correctly formats messages that were sent by this client
-            elif msg.startswith(user):
-                to_split = user+" said:"
-                if msg.startswith(to_split):
-                    print("You said:" + msg[len(to_split):])
-
             #When the prompt-message from the dictator comes, bot outputs its message
-            elif msg.startswith(users[0]):
-                msg = f"{user} said: {actBot(user, activity, activity2)}"
-                c_socket.send(msg.encode())
+            elif msg.startswith(f"Dictator suggested: "):
+                words = msg.split(' ')
+                activity = words[2]
+                try:
+                    activity2 = words[4]
+                except:
+                    activity2 = None
+                print(msg)
+                bot_msg = actBot(user, activity, activity2)
+                print(f"You said: {bot_msg}")
+                c_socket.send(f"{user} said: {bot_msg}".encode())
+                print("Sent")
 
             #Handles being kicked out by the server
-            elif msg=="You've been kicked out":
+            elif msg=="\nYou've been kicked out":
                 print(msg)
                 print("Bye...")
                 c_socket.close()
@@ -65,10 +73,10 @@ def listen():
 
             #Prints any non-empty messages that do not meet the previous conditions
             elif msg!="":
-                    print(msg)
+                print(msg)
         except:
             c_socket.close()
+            quit()
             break
 
-#starts listening
 listen()
